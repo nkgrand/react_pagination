@@ -1,75 +1,62 @@
-import React from 'react';
-import { Pagination } from './Pagination/Pagination';
+import React, { useState } from "react";
+import { Pagination } from "./Pagination/Pagination";
 import './App.css';
 
-type State = {
-  total: number;
-  perPage: number;
-  page: number;
-};
+const items = Array.from({ length: 42 }, (_, index) => `Item ${index + 1}`);
 
-export class App extends React.Component<{}, State> {
-  state: State = {
-    total: 42,
-    perPage: 5,
-    page: 1,
+export const App: React.FC = () => {
+  const [perPage, setPerPage] = useState(5);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const start = (currentPage - 1) * perPage;
+  const visibleItems = items.slice(start, start + perPage);
+  const firstItem = start + 1;
+  const lastItem = start + visibleItems.length;
+  const info = `Page ${currentPage} (items ${firstItem} - ${lastItem} of ${items.length})`;
+
+  const handlePerPageChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setPerPage(Number(event.target.value));
+    setCurrentPage(1);
   };
 
-  toNextPage = () => {
-    this.setState(state => ({
-      page: state.page + 1,
-    }));
-  };
+  return (
+    <div className="app">
+      <h1>Items with Pagination</h1>
 
-  toPrevPage = () => {
-    this.setState(state => ({
-      page: state.page - 1,
-    }));
-  };
+      <p className="lead" data-cy="info">
+        {info}
+      </p>
 
-  onPageChange = (page: number) => {
-    this.setState({ page });
-  };
+      <div className="per-page">
+        <select
+          data-cy="perPageSelector"
+          id="perPageSelector"
+          value={perPage}
+          onChange={handlePerPageChange}
+        >
+          <option value="3">3</option>
+          <option value="5">5</option>
+          <option value="10">10</option>
+          <option value="20">20</option>
+        </select>
 
-  onPerPageChange = (event: { target: { value: string } }) => {
-    this.setState({
-      perPage: Number(event.target.value),
-      page: 1,
-    });
-  };
-
-  render() {
-    const { total, perPage, page } = this.state;
-
-    return (
-      <div className="app">
-        <h1>Pagination</h1>
-        <div>
-          <label htmlFor="perPage">
-            Items per page&nbsp;
-            <select
-              name="perPage"
-              id="perPage"
-              value={perPage}
-              onChange={this.onPerPageChange}
-            >
-              <option value="3">3</option>
-              <option value="5">5</option>
-              <option value="10">10</option>
-              <option value="20">20</option>
-            </select>
-          </label>
-        </div>
-
-        <Pagination
-          total={total}
-          perPage={perPage}
-          activePage={page}
-          onPageChange={this.onPageChange}
-          toNextPage={this.toNextPage}
-          toPrevPage={this.toPrevPage}
-        />
+        <label htmlFor="perPageSelector">items per page</label>
       </div>
-    );
-  }
-}
+
+      <Pagination
+        total={items.length}
+        perPage={perPage}
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+      />
+
+      <ul className="items">
+        {visibleItems.map((item) => (
+          <li data-cy="item" key={item}>
+            {item}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
